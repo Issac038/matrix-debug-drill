@@ -10,12 +10,24 @@ jobs:
   test:
     runs-on: ${{ matrix.os }}
     strategy:
-      fail-fast: true
+      # fail-fast: false ensures all combinations run to completion
+      # This is essential for a compatibility matrix — we need to see all failures
+      # not just the first one, so we can apply targeted fixes per combination
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest]
         node: [18, 20, 22]
+        include:
+          - node: 24
+            os: ubuntu-latest
+            experimental: true
+    continue-on-error: ${{ matrix.experimental == true }}
     steps:
       - uses: actions/checkout@v4
+      - name: Print environment info for debugging
+        run: |
+          node --version
+          npm --version
       - uses: actions/setup-node@v4
         with:
           node-version: ${{ matrix.node }}
